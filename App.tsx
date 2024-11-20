@@ -122,8 +122,8 @@ function App(): React.JSX.Element {
       setIsWhiteButtonActive(!isWhiteButtonActive);
       setIsBlackButtonActive(!isBlackButtonActive);
     } else if (
-      (currentPlayer === 'white' && piece === 'P') ||
-      (currentPlayer === 'black' && piece === 'p')
+      (currentPlayer === 'white' && piece !== '') ||
+      (currentPlayer === 'black' && piece !== '')
     ) {
       setSelectedPiece({ row, col });
       calculateValidMoves(piece, row, col);
@@ -138,51 +138,182 @@ function App(): React.JSX.Element {
     const moves: { row: number; col: number }[] = [];
     const direction = piece === 'P' ? -1 : 1; // White moves up (-1), Black moves down (+1)
   
-    // Forward Move (1 square)
-    if (chessPieces[row + direction]?.[col] === '') {
-      moves.push({ row: row + direction, col });
-    }
-  
-    // First Move (2 squares)
-    if (
-      (piece === 'P' && row === 6) || (piece === 'p' && row === 1) // Pawns start from row 6 (white) or row 1 (black)
-    ) {
-      if (chessPieces[row + direction * 2]?.[col] === '') {
-        moves.push({ row: row + direction * 2, col });
+    // Handle Pawn Moves
+    if (piece.toLowerCase() === 'p') {
+      // Forward Move (1 square)
+      if (chessPieces[row + direction]?.[col] === '') {
+        moves.push({ row: row + direction, col });
       }
+  
+      // First Move (2 squares)
+      if (
+        (piece === 'P' && row === 6) || (piece === 'p' && row === 1) // Pawns start from row 6 (white) or row 1 (black)
+      ) {
+        if (chessPieces[row + direction * 2]?.[col] === '') {
+          moves.push({ row: row + direction * 2, col });
+        }
+      }
+  
+      // Capture Move (diagonal left and right)
+      if (
+        chessPieces[row + direction]?.[col - 1] &&
+        chessPieces[row + direction]?.[col - 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
+        col - 1 >= 0
+      ) {
+        moves.push({ row: row + direction, col: col - 1 });
+      }
+      
+      if (
+        chessPieces[row + direction]?.[col + 1] &&
+        chessPieces[row + direction]?.[col + 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
+        col + 1 < 8
+      ) {
+        moves.push({ row: row + direction, col: col + 1 });
+      }
+      console.log(moves)
     }
   
-    // Capture Move (diagonal left and right)
-    if (
-      chessPieces[row + direction]?.[col - 1] &&
-      chessPieces[row + direction]?.[col - 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
-      col - 1 >= 0
-    ) {
-      moves.push({ row: row + direction, col: col - 1 });
+    // Handle Rook Moves
+    if (piece.toLowerCase() === 'r') {
+      const directions = [
+        { r: 1, c: 0 }, // Up
+        { r: -1, c: 0 }, // Down
+        { r: 0, c: 1 }, // Right
+        { r: 0, c: -1 }, // Left
+      ];
+  
+      directions.forEach(({ r, c }) => {
+        let i = 1;
+        while (row + i * r >= 0 && row + i * r < 8 && col + i * c >= 0 && col + i * c < 8) {
+          const targetRow = row + i * r;
+          const targetCol = col + i * c;
+          const targetPiece = chessPieces[targetRow][targetCol];
+  
+          if (targetPiece === '') {
+            moves.push({ row: targetRow, col: targetCol });
+          } else if (targetPiece.toLowerCase() !== piece.toLowerCase()) {
+            moves.push({ row: targetRow, col: targetCol });
+            break;
+          } else {
+            break;
+          }
+  
+          i++;
+        }
+      });
     }
-    
-    if (
-      chessPieces[row + direction]?.[col + 1] &&
-      chessPieces[row + direction]?.[col + 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
-      col + 1 < 8
-    ) {
-      moves.push({ row: row + direction, col: col + 1 });
+  
+    // Handle Knight Moves
+    if (piece.toLowerCase() === 'n') {
+      const knightMoves = [
+        { r: 2, c: 1 }, { r: 2, c: -1 }, { r: -2, c: 1 }, { r: -2, c: -1 },
+        { r: 1, c: 2 }, { r: 1, c: -2 }, { r: -1, c: 2 }, { r: -1, c: -2 }
+      ];
+  
+      knightMoves.forEach(({ r, c }) => {
+        const targetRow = row + r;
+        const targetCol = col + c;
+        if (targetRow >= 0 && targetRow < 8 && targetCol >= 0 && targetCol < 8) {
+          const targetPiece = chessPieces[targetRow][targetCol];
+          if (targetPiece === '' || targetPiece.toLowerCase() !== piece.toLowerCase()) {
+            moves.push({ row: targetRow, col: targetCol });
+          }
+        }
+      });
+    }
+  
+    // Handle Bishop Moves
+    if (piece.toLowerCase() === 'b') {
+      const directions = [
+        { r: 1, c: 1 }, // Up-right
+        { r: -1, c: -1 }, // Down-left
+        { r: 1, c: -1 }, // Up-left
+        { r: -1, c: 1 }, // Down-right
+      ];
+  
+      directions.forEach(({ r, c }) => {
+        let i = 1;
+        while (row + i * r >= 0 && row + i * r < 8 && col + i * c >= 0 && col + i * c < 8) {
+          const targetRow = row + i * r;
+          const targetCol = col + i * c;
+          const targetPiece = chessPieces[targetRow][targetCol];
+  
+          if (targetPiece === '') {
+            moves.push({ row: targetRow, col: targetCol });
+          } else if (targetPiece.toLowerCase() !== piece.toLowerCase()) {
+            moves.push({ row: targetRow, col: targetCol });
+            break;
+          } else {
+            break;
+          }
+  
+          i++;
+        }
+      });
+    }
+  
+    // Handle Queen Moves
+    if (piece.toLowerCase() === 'q') {
+      const directions = [
+        { r: 1, c: 0 }, { r: -1, c: 0 }, // Rook-like moves (Up, Down)
+        { r: 0, c: 1 }, { r: 0, c: -1 }, // Rook-like moves (Right, Left)
+        { r: 1, c: 1 }, { r: -1, c: -1 }, // Bishop-like moves (Up-right, Down-left)
+        { r: 1, c: -1 }, { r: -1, c: 1 }, // Bishop-like moves (Up-left, Down-right)
+      ];
+  
+      directions.forEach(({ r, c }) => {
+        let i = 1;
+        while (row + i * r >= 0 && row + i * r < 8 && col + i * c >= 0 && col + i * c < 8) {
+          const targetRow = row + i * r;
+          const targetCol = col + i * c;
+          const targetPiece = chessPieces[targetRow][targetCol];
+  
+          if (targetPiece === '') {
+            moves.push({ row: targetRow, col: targetCol });
+          } else if ((checkCase(targetPiece) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(targetPiece) === 'uppercase' && checkCase(piece) === 'lowercase')) {
+            moves.push({ row: targetRow, col: targetCol });
+            break;
+          } else {
+            break;
+          }
+  
+          i++;
+        }
+      });
+      console.log(moves)
+    }
+  
+    // Handle King Moves
+    if (piece.toLowerCase() === 'k') {
+      const kingMoves = [
+        { r: 1, c: 0 }, { r: -1, c: 0 }, { r: 0, c: 1 }, { r: 0, c: -1 },
+        { r: 1, c: 1 }, { r: -1, c: -1 }, { r: 1, c: -1 }, { r: -1, c: 1 }
+      ];
+  
+      kingMoves.forEach(({ r, c }) => {
+        const targetRow = row + r;
+        const targetCol = col + c;
+        if (targetRow >= 0 && targetRow < 8 && targetCol >= 0 && targetCol < 8) {
+          const targetPiece = chessPieces[targetRow][targetCol];
+          if (targetPiece === '' || targetPiece.toLowerCase() !== piece.toLowerCase()) {
+            moves.push({ row: targetRow, col: targetCol });
+          }
+        }
+      });
     }
   
     setValidMoves(moves);
   };
+  
 
-  const handlePlayerSwitch = (player: 'white' | 'black') => {
-    if (player === 'white' && currentPlayer === 'black') {
-      setCurrentPlayer('white');
-      setIsWhiteButtonActive(true);
-      setIsBlackButtonActive(false);
-    } else if (player === 'black' && currentPlayer === 'white') {
-      setCurrentPlayer('black');
-      setIsWhiteButtonActive(false);
-      setIsBlackButtonActive(true);
-    }
-  };
+  const checkCase = (character:string) => {
+    if (character == character.toUpperCase()) {
+      return 'uppercase'
+     }
+     if (character == character.toLowerCase()){
+      return 'lowercase'
+     }
+  }
 
 
 
