@@ -156,8 +156,7 @@ function App(): React.JSX.Element {
   
       // Capture Move (diagonal left and right)
       if (
-        chessPieces[row + direction]?.[col - 1] &&
-        chessPieces[row + direction]?.[col - 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
+        chessPieces[row + direction]?.[col - 1] && (checkCase(chessPieces[row + direction]?.[col - 1]) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(chessPieces[row + direction]?.[col - 1]) === 'uppercase' && checkCase(piece) === 'lowercase') && // Check for opponent's piece
         col - 1 >= 0
       ) {
         moves.push({ row: row + direction, col: col - 1 });
@@ -165,7 +164,7 @@ function App(): React.JSX.Element {
       
       if (
         chessPieces[row + direction]?.[col + 1] &&
-        chessPieces[row + direction]?.[col + 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
+        (checkCase(chessPieces[row + direction]?.[col - 1]) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(chessPieces[row + direction]?.[col - 1]) === 'uppercase' && checkCase(piece) === 'lowercase') && // Check for opponent's piece
         col + 1 < 8
       ) {
         moves.push({ row: row + direction, col: col + 1 });
@@ -191,7 +190,7 @@ function App(): React.JSX.Element {
   
           if (targetPiece === '') {
             moves.push({ row: targetRow, col: targetCol });
-          } else if (targetPiece.toLowerCase() !== piece.toLowerCase()) {
+          } else if ((checkCase(targetPiece) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(targetPiece) === 'uppercase' && checkCase(piece) === 'lowercase')) {
             moves.push({ row: targetRow, col: targetCol });
             break;
           } else {
@@ -215,7 +214,7 @@ function App(): React.JSX.Element {
         const targetCol = col + c;
         if (targetRow >= 0 && targetRow < 8 && targetCol >= 0 && targetCol < 8) {
           const targetPiece = chessPieces[targetRow][targetCol];
-          if (targetPiece === '' || targetPiece.toLowerCase() !== piece.toLowerCase()) {
+          if (targetPiece === '' || (checkCase(targetPiece) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(targetPiece) === 'uppercase' && checkCase(piece) === 'lowercase')) {
             moves.push({ row: targetRow, col: targetCol });
           }
         }
@@ -240,7 +239,7 @@ function App(): React.JSX.Element {
   
           if (targetPiece === '') {
             moves.push({ row: targetRow, col: targetCol });
-          } else if (targetPiece.toLowerCase() !== piece.toLowerCase()) {
+          } else if ((checkCase(targetPiece) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(targetPiece) === 'uppercase' && checkCase(piece) === 'lowercase')) {
             moves.push({ row: targetRow, col: targetCol });
             break;
           } else {
@@ -295,7 +294,7 @@ function App(): React.JSX.Element {
         const targetCol = col + c;
         if (targetRow >= 0 && targetRow < 8 && targetCol >= 0 && targetCol < 8) {
           const targetPiece = chessPieces[targetRow][targetCol];
-          if (targetPiece === '' || targetPiece.toLowerCase() !== piece.toLowerCase()) {
+          if (targetPiece === '' || (checkCase(targetPiece) === 'lowercase' && checkCase(piece) === 'uppercase')||(checkCase(targetPiece) === 'uppercase' && checkCase(piece) === 'lowercase')) {
             moves.push({ row: targetRow, col: targetCol });
           }
         }
