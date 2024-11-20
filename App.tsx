@@ -80,6 +80,8 @@ function App(): React.JSX.Element {
     ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
     ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
   ])
+  const [isWhiteButtonActive, setIsWhiteButtonActive] = useState(true);
+  const [isBlackButtonActive, setIsBlackButtonActive] = useState(false);
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
@@ -117,6 +119,8 @@ function App(): React.JSX.Element {
       setSelectedPiece(null);
       setValidMoves([]);
       setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+      setIsWhiteButtonActive(!isWhiteButtonActive);
+      setIsBlackButtonActive(!isBlackButtonActive);
     } else if (
       (currentPlayer === 'white' && piece === 'P') ||
       (currentPlayer === 'black' && piece === 'p')
@@ -129,17 +133,55 @@ function App(): React.JSX.Element {
     }
   };
 
+
   const calculateValidMoves = (piece: string, row: number, col: number) => {
     const moves: { row: number; col: number }[] = [];
-
-    if (piece.toLowerCase() === 'p') {
-      const direction = piece === 'P' ? -1 : 1; 
-      if (chessPieces[row + direction]?.[col] === '') {
-        moves.push({ row: row + direction, col });
+    const direction = piece === 'P' ? -1 : 1; // White moves up (-1), Black moves down (+1)
+  
+    // Forward Move (1 square)
+    if (chessPieces[row + direction]?.[col] === '') {
+      moves.push({ row: row + direction, col });
+    }
+  
+    // First Move (2 squares)
+    if (
+      (piece === 'P' && row === 6) || (piece === 'p' && row === 1) // Pawns start from row 6 (white) or row 1 (black)
+    ) {
+      if (chessPieces[row + direction * 2]?.[col] === '') {
+        moves.push({ row: row + direction * 2, col });
       }
     }
-
+  
+    // Capture Move (diagonal left and right)
+    if (
+      chessPieces[row + direction]?.[col - 1] &&
+      chessPieces[row + direction]?.[col - 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
+      col - 1 >= 0
+    ) {
+      moves.push({ row: row + direction, col: col - 1 });
+    }
+    
+    if (
+      chessPieces[row + direction]?.[col + 1] &&
+      chessPieces[row + direction]?.[col + 1].toLowerCase() !== piece.toLowerCase() && // Check for opponent's piece
+      col + 1 < 8
+    ) {
+      moves.push({ row: row + direction, col: col + 1 });
+    }
+  
     setValidMoves(moves);
+  };
+
+  const handlePlayerSwitch = (player: 'white' | 'black') => {
+    if (player === 'white' && currentPlayer === 'black') {
+      setCurrentPlayer('white');
+      setIsWhiteButtonActive(true);
+      setIsBlackButtonActive(false);
+    } else if (player === 'black' && currentPlayer === 'white') {
+      setCurrentPlayer('black');
+      setIsWhiteButtonActive(false);
+      setIsBlackButtonActive(true);
+    }
   };
 
 
@@ -173,26 +215,19 @@ function App(): React.JSX.Element {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <View style={styles.playerContainer}>
-        <TouchableOpacity
-          style={styles.playerButton}
-          onPress={() => handlePlayerAction()}
-        >
-          <Text style={styles.buttonText}>Player 1</Text>
-        </TouchableOpacity>
-        <Text style={styles.timer}>{formatTime(whiteTime)}</Text>
+
+          <Text style={styles.buttonText}>Black Player</Text>
+
+        <Text style={styles.timer}>{formatTime(blackTime)}</Text>
       </View>
       <View style={styles.boardContainer}>
         <FlatList data={chessPieces} renderItem={({ item, index }: any) => <RenderItem index={index} item={item} keyExtractor={(_, index) => index.toString()}
           scrollEnabled={false} />} />
       </View>
       <View style={styles.playerContainer}>
-        <TouchableOpacity
-          style={styles.playerButton}
-          onPress={() => handlePlayerAction()}
-        >
-          <Text style={styles.buttonText}>Player 2</Text>
-        </TouchableOpacity>
-        <Text style={styles.timer}>{formatTime(blackTime)}</Text>
+
+          <Text style={styles.buttonText}>WhitePlayer</Text>
+        <Text style={styles.timer}>{formatTime(whiteTime)}</Text>
       </View>
     </SafeAreaView>
   );
@@ -268,7 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
   },
