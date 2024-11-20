@@ -66,6 +66,10 @@ function App(): React.JSX.Element {
   const [articles, setArticles] = useState(mockData);
   const [selectedPiece, setSelectedPiece] = useState<{ row: number; col: number } | null>(null);
   const [validMoves, setValidMoves] = useState<{ row: number; col: number }[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState<'white' | 'black'>('white');
+
+  const [whiteTime, setWhiteTime] = useState(3600); 
+  const [blackTime, setBlackTime] = useState(3600); 
   const [chessPieces, setChessPieces] = useState([
     ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
     ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
@@ -81,17 +85,22 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    // setArticles(mockData)
-    fetch('https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=02b8547e59f74130bbbcf84c876daa29').then((response) => {
-      return response.json();
-    }).then((result) => {
+    const timer = setInterval(() => {
+      if (currentPlayer === 'white') {
+        setWhiteTime((prev) => (prev > 0 ? prev - 1 : 0));
+      } else {
+        setBlackTime((prev) => (prev > 0 ? prev - 1 : 0));
+      }
+    }, 1000);
 
-      setArticles(result.articles)
+    return () => clearInterval(timer);
+  }, [currentPlayer]);
 
-    }).catch((errr) => {
-      console.log(errr)
-    })
-  }, [])
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   const handleSquarePress = (row: number, col: number) => {
     const piece = chessPieces[row][col];
@@ -107,7 +116,11 @@ function App(): React.JSX.Element {
       setChessPieces(newBoard);
       setSelectedPiece(null);
       setValidMoves([]);
-    } else if (piece) {
+      setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+    } else if (
+      (currentPlayer === 'white' && piece === 'P') ||
+      (currentPlayer === 'black' && piece === 'p')
+    ) {
       setSelectedPiece({ row, col });
       calculateValidMoves(piece, row, col);
     } else {
@@ -166,6 +179,7 @@ function App(): React.JSX.Element {
         >
           <Text style={styles.buttonText}>Player 1</Text>
         </TouchableOpacity>
+        <Text style={styles.timer}>{formatTime(whiteTime)}</Text>
       </View>
       <View style={styles.boardContainer}>
         <FlatList data={chessPieces} renderItem={({ item, index }: any) => <RenderItem index={index} item={item} keyExtractor={(_, index) => index.toString()}
@@ -178,6 +192,7 @@ function App(): React.JSX.Element {
         >
           <Text style={styles.buttonText}>Player 2</Text>
         </TouchableOpacity>
+        <Text style={styles.timer}>{formatTime(blackTime)}</Text>
       </View>
     </SafeAreaView>
   );
@@ -242,6 +257,8 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginVertical: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly'
   },
   playerButton: {
     backgroundColor: '#007bff',
@@ -258,7 +275,10 @@ const styles = StyleSheet.create({
   highlightedSquare: {
     backgroundColor: '#76ff03',
   },
-
+  timer: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
 
 export default App;
